@@ -21,13 +21,15 @@ const main = async () => {
 
     if(entry) {
       if(entry.channel === msg.channelId) {
+        if(!msg.member.bannable) return;
+
         try {
           const dm = await msg.author.createDM();
           await dm.send(entry.banMsg);
-
-          await msg.member.ban({days: 1, reason: "Sent a message in the trap channel"});
-          await msg.delete();
         } catch {}
+
+          await msg.member.ban({ days: 1, reason: "Sent a message in the trap channel" });
+          await msg.delete();
       }
     }
   });
