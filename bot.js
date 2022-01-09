@@ -8,7 +8,7 @@ const main = async () => {
   const configFd = await open("config.json", "r+");
   const config = JSON.parse(await configFd.readFile());
 
-  const discord = new Client({ intents: [Intents.FLAGS.GUILD_MESSAGES] });
+  const discord = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
   discord.on("ready", () => {
     console.info(`Logged in as ${discord.user.tag}`);
