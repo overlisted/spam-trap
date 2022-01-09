@@ -1,0 +1,14 @@
+{
+  "name": "spam-trap",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node bot.js",
+    "setup": "node setup.js"
+  },
+  "dependencies": {
+    "@discordjs/rest": "^0.2.0-canary.0",
+    "discord-api-types": "^0.26.1",
+    "discord.js": "^13.5.1",
+    "dotenv": "^10.0.0"
+  }
+}
