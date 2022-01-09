@@ -47,7 +47,10 @@ const main = async () => {
         banMsg: interaction.options.getString("ban_msg"),
       }
 
-      await configFd.write(JSON.stringify(config), 0);
+      const newData = JSON.stringify(config);
+      await configFd.write(newData, 0);
+      await configFd.truncate(newData.length);
+
       await interaction.reply("Saved!");
     }
   })
