@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-const { Client, Intents } = require("discord.js");
+const { Client, Intents, Permissions } = require("discord.js");
 const { open } = require("fs/promises");
 
 const main = async () => {
@@ -36,6 +36,12 @@ const main = async () => {
     if(!interaction.isCommand()) return;
 
     if(interaction.commandName === "trap") {
+      if(!interaction.memberPermissions.has(Permissions.FLAGS.BAN_MEMBERS)) {
+        await interaction.reply(`You need the "Ban members" permission to use this.`);
+
+        return;
+      }
+
       config[interaction.guildId] = {
         channel: interaction.options.getChannel("channel").id,
         banMsg: interaction.options.getString("ban_msg"),
