@@ -29,7 +29,6 @@ const main = async () => {
         } catch {}
 
           await msg.member.ban({ days: 1, reason: "Sent a message in the trap channel" });
-          await msg.delete();
       }
     }
   });
