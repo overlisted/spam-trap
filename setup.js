@@ -13,15 +13,15 @@ const commands = [
         name: "channel",
         description: "The trap channel in this server",
         type: ApplicationCommandOptionType.Channel,
-        required: true
+        required: true,
       },
       {
         name: "ban_msg",
         description: "The message that will be sent to banned people",
         type: ApplicationCommandOptionType.String,
-        required: true
-      }
-    ]
+        required: true,
+      },
+    ],
   },
   {
     name: "logs",
@@ -31,10 +31,10 @@ const commands = [
         name: "channel",
         description: "The log channel in this server",
         type: ApplicationCommandOptionType.Channel,
-        required: true
-      }
-    ]
-  }
+        required: true,
+      },
+    ],
+  },
 ];
 
 const main = async () => {
@@ -56,4 +56,4 @@ const main = async () => {
   await writeFile("logConfig.json", "{}");
 };
 
-main()
+main();
