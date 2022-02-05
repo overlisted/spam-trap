@@ -61,6 +61,7 @@ const main = async () => {
           }
         }
 
+        console.log(`New ban from "${msg.guild.name}"`);
         await bansColl.insertOne({
           message: msg.toJSON(),
           user: msg.member.user.toJSON(),
