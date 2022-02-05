@@ -1,17 +1,16 @@
 require("dotenv").config();
 
 const { Client, Intents, Permissions, MessageEmbed } = require("discord.js");
-const { open } = require("fs/promises");
+const { MongoClient } = require("mongodb");
 
 const main = async () => {
-  console.info("Reading the configs");
-  const configFd = await open("config.json", "r+");
-  const logConfigFd = await open("logConfig.json", "r+");
-
-  const config = JSON.parse(await configFd.readFile());
-  const logConfig = JSON.parse(await logConfigFd.readFile());
-
+  const mongoClient = new MongoClient(process.env.MONGO_URL);
   const discord = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
+
+  console.info("Connecting to Mongo");
+  await mongoClient.connect();
+  const db = mongoClient.db("spam-trap");
+  const guildsColl = db.collection("guilds");
 
   discord.on("ready", () => {
     console.info(`Logged in as ${discord.user.tag}`);
@@ -20,11 +19,10 @@ const main = async () => {
   discord.on("messageCreate", async msg => {
     if(!msg.inGuild()) return;
 
-    const entry = config[msg.guildId];
-    const logEntry = logConfig[msg.guildId];
+    const entry = await guildsColl.findOne({ guildId: msg.guildId });
 
     if(entry) {
-      if(entry.channel === msg.channelId) {
+      if(entry.trapChannel === msg.channelId) {
         if(!msg.member.bannable) return;
 
         try {
@@ -34,9 +32,9 @@ const main = async () => {
 
         await msg.member.ban({ days: 1, reason: "Sent a message in the trap channel" });
 
-        if(logEntry && logEntry.channel) {
+        if(entry.logChannel) {
           try {
-            const logs = await discord.channels.fetch(logEntry.channel);
+            const logs = await discord.channels.fetch(entry.logChannel);
             await logs.send({
               embeds: [
                 new MessageEmbed()
@@ -64,14 +62,17 @@ const main = async () => {
         return;
       }
 
-      config[interaction.guildId] = {
-        channel: interaction.options.getChannel("channel").id,
-        banMsg: interaction.options.getString("ban_msg"),
-      };
-
-      const newData = JSON.stringify(config);
-      await configFd.write(newData, 0);
-      await configFd.truncate(newData.length);
+      await guildsColl.updateOne(
+        { guildId: interaction.guildId },
+        {
+          $set: {
+            guildId: interaction.guildId,
+            trapChannel: interaction.options.getChannel("channel").id,
+            banMsg: interaction.options.getString("ban_msg"),
+          },
+        },
+        { upsert: true },
+      );
 
       await interaction.reply("Saved!");
     }
@@ -83,13 +84,16 @@ const main = async () => {
         return;
       }
 
-      logConfig[interaction.guildId] = {
-        channel: interaction.options.getChannel("channel").id,
-      };
-
-      const newData = JSON.stringify(logConfig);
-      await logConfigFd.write(newData, 0);
-      await logConfigFd.truncate(newData.length);
+      await guildsColl.updateOne(
+        { guildId: interaction.guildId },
+        {
+          $set: {
+            guildId: interaction.guildId,
+            logChannel: interaction.options.getChannel("channel").id,
+          },
+        },
+        { upsert: true },
+      );
 
       await interaction.reply("Saved!");
     }

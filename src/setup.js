@@ -2,7 +2,6 @@ require("dotenv").config();
 
 const { REST } = require("@discordjs/rest");
 const { Routes, ApplicationCommandOptionType } = require("discord-api-types/v9");
-const { writeFile } = require("fs/promises");
 
 const commands = [
   {
@@ -50,10 +49,6 @@ const main = async () => {
   } catch(error) {
     console.error(error);
   }
-
-  console.log("=> Config file");
-  await writeFile("config.json", "{}");
-  await writeFile("logConfig.json", "{}");
 };
 
 main();
