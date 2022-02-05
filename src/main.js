@@ -5,8 +5,8 @@ const { MongoClient } = require("mongodb");
 
 const logEmbed = (msg, user, revoked) => new MessageEmbed()
   .setTitle("Someone was caught!")
-  .addField("Tag", user.tag, true)
-  .addField("ID", user.id, true)
+  .addField("User tag", user.tag, true)
+  .addField("User ID", user.id, true)
   .addField("Revoked", revoked ?? "No", true)
   .addField("Message", msg.content, false);
 
