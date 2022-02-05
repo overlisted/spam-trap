@@ -11,6 +11,7 @@ const main = async () => {
   await mongoClient.connect();
   const db = mongoClient.db("spam-trap");
   const guildsColl = db.collection("guilds");
+  const bansColl = db.collection("bans");
 
   discord.on("ready", () => {
     console.info(`Logged in as ${discord.user.tag}`);
@@ -32,10 +33,11 @@ const main = async () => {
 
         await msg.member.ban({ days: 1, reason: "Sent a message in the trap channel" });
 
+        let logMessage;
         if(entry.logChannel) {
           try {
             const logs = await discord.channels.fetch(entry.logChannel);
-            await logs.send({
+            logMessage = await logs.send({
               embeds: [
                 new MessageEmbed()
                   .setTitle("Someone was caught!")
@@ -48,6 +50,11 @@ const main = async () => {
             console.error(e);
           }
         }
+
+        await bansColl.insertOne({
+          message: msg.toJSON(),
+          logMessage: logMessage?.id,
+        });
       }
     }
   });
