@@ -1,7 +1,14 @@
 require("dotenv").config();
 
-const { Client, Intents, Permissions, MessageEmbed } = require("discord.js");
+const { Client, Intents, Permissions, MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
 const { MongoClient } = require("mongodb");
+
+const logEmbed = (msg, user, revoked) => new MessageEmbed()
+  .setTitle("Someone was caught!")
+  .addField("Tag", user.tag, true)
+  .addField("ID", user.id, true)
+  .addField("Revoked", revoked ?? "No", true)
+  .addField("Message", msg.content, false);
 
 const main = async () => {
   const mongoClient = new MongoClient(process.env.MONGO_URL);
@@ -38,12 +45,15 @@ const main = async () => {
           try {
             const logs = await discord.channels.fetch(entry.logChannel);
             logMessage = await logs.send({
-              embeds: [
-                new MessageEmbed()
-                  .setTitle("Someone was caught!")
-                  .addField("Tag", msg.member.user.tag, true)
-                  .addField("ID", msg.member.user.id, true)
-                  .addField("Message", msg.content, false),
+              embeds: [logEmbed(msg, msg.member.user)],
+              components: [
+                new MessageActionRow()
+                  .addComponents(
+                    new MessageButton()
+                      .setCustomId("unban")
+                      .setLabel("Unban now")
+                      .setStyle("DANGER")
+                  ),
               ],
             });
           } catch(e) {
@@ -53,6 +63,7 @@ const main = async () => {
 
         await bansColl.insertOne({
           message: msg.toJSON(),
+          user: msg.member.user.toJSON(),
           logMessage: logMessage?.id,
         });
       }
@@ -60,7 +71,28 @@ const main = async () => {
   });
 
   discord.on("interactionCreate", async interaction => {
-    if(!interaction.isCommand()) return;
+    if(interaction.customId === "unban") {
+      if(!interaction.memberPermissions.has(Permissions.FLAGS.BAN_MEMBERS)) {
+        await interaction.reply({ content: `You need the "Ban members" permission to use this.`, ephemeral: true });
+
+        return;
+      }
+
+      const entry = await bansColl.findOne({ logMessage: interaction.message.id });
+
+      try {
+        await discord.guilds.resolve(interaction.guildId).members.unban(entry.message.authorId);
+      } catch(e) {
+        console.error(e);
+      }
+
+      const date = new Date();
+      await interaction.update({
+        embeds: [logEmbed(entry.message, entry.user, `<t:${date.getTime().toString().slice(0, -3)}:f>`)],
+        components: []
+      });
+      await bansColl.updateOne({ logMessage: interaction.message.id }, { $set: { revoked: date } })
+    }
 
     if(interaction.commandName === "trap") {
       if(!interaction.memberPermissions.has(Permissions.FLAGS.BAN_MEMBERS)) {
