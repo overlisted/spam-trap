@@ -38,7 +38,7 @@ const main = async () => {
             await logs.send({
               embeds: [
                 new MessageEmbed()
-                  .setTitle("Someone was banned!")
+                  .setTitle("Someone was caught!")
                   .addField("Tag", msg.member.user.tag, true)
                   .addField("ID", msg.member.user.id, true)
                   .addField("Message", msg.content, false),
