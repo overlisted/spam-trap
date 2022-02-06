@@ -24,6 +24,10 @@ const main = async () => {
     console.info(`Logged in as ${discord.user.tag}`);
   });
 
+  discord.on("guildCreate", guild => {
+    console.log(`Joined "${guild.name}"`);
+  });
+
   discord.on("messageCreate", async msg => {
     if(!msg.inGuild()) return;
 
