@@ -8,7 +8,7 @@ const logEmbed = (msg, user, revoked) => new MessageEmbed()
   .addField("User tag", user.tag, true)
   .addField("User ID", user.id, true)
   .addField("Revoked", revoked ?? "No", true)
-  .addField("Message", msg.content, false);
+  .addField("Message", msg.content || "*None*", false);
 
 const main = async () => {
   const mongoClient = new MongoClient(process.env.MONGO_URL);
